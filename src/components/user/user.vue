@@ -1,11 +1,7 @@
 <template>
     <el-card class="box-card">
         <!-- 面包屑 -->
-        <el-breadcrumb separator="/">
-            <el-breadcrumb-item>首页</el-breadcrumb-item>
-            <el-breadcrumb-item>用户管理</el-breadcrumb-item>
-            <el-breadcrumb-item>用户列表</el-breadcrumb-item>
-        </el-breadcrumb>
+        <my-breadcrumb level1='用户管理' level2='用户列表'></my-breadcrumb>
 
         <!-- 输入框 -->
         <el-row class="search-row">
@@ -180,9 +176,6 @@ export default {
     methods:{
         //获取用户列表
         async getUserList(){
-            const token = localStorage.getItem('token')
-            //提交token进行认证
-            this.$http.defaults.headers.common['Authorization'] = token
             const response = await this.$http.get(`users?query=${this.query}&pagenum=${this.pagenumber}&pagesize=${this.pagesize}`)
             //获取响应信息(response)中的data对象和meta对象
             //data对象的users为用户列表
