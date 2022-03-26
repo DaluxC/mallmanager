@@ -3,6 +3,7 @@
         <!-- 面包屑 -->
         <my-breadcrumb level1='权限管理' level2='权限列表'></my-breadcrumb>
 
+        <!-- 权限列表 -->
         <el-table
         :data="rightList"
         height="520"
