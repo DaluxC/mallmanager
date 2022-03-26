@@ -4,13 +4,14 @@
         <my-breadcrumb level1='权限管理' level2='角色列表'></my-breadcrumb>
 
         <!-- 添加角色 -->
-        <el-button plain class="add-button">添加角色</el-button>
+        <el-button plain class="add-button" @click="addRoleDialog()">添加角色</el-button>
 
         <!-- 角色列表 -->
          <el-table
         :data="roleList"
         style="width: 100%"
         class="role-list">
+            <!-- 角色项下可展开的该角色拥有的权限列表 -->
             <el-table-column type="expand">
                 <template slot-scope="scope">
                     <span v-if="scope.row.children.length === 0">未分配权限</span>
@@ -72,14 +73,15 @@
             <el-table-column label="操作">
                 <template slot-scope="scope">
                     <el-row>
-                        <el-button type="primary" icon="el-icon-edit" circle plain></el-button>
-                        <el-button type="danger" icon="el-icon-delete" circle plain></el-button>
+                        <el-button type="primary" @click="editRoleDialog(scope.row)" icon="el-icon-edit" circle plain></el-button>
+                        <el-button type="danger" @click="deleteRoleAlert(scope.row.id)" icon="el-icon-delete" circle plain></el-button>
                         <el-button type="success" @click="setRightDialog(scope.row)" icon="el-icon-check" circle plain></el-button>
                     </el-row>
                 </template>
             </el-table-column>
         </el-table>
 
+        <!-- 修改权限的对话框 -->
         <el-dialog title="修改权限" :visible.sync="dialogFormVisible">
             <el-tree
             ref="treeList"
@@ -95,6 +97,38 @@
                 <el-button type="primary" @click="setRoleRight()">确 定</el-button>
             </div>
         </el-dialog>
+
+        <!-- 添加角色的对话框 -->
+        <el-dialog title="添加角色" :visible.sync="dialogFormVisibleAdd">
+            <el-form :model="form">
+                <el-form-item label="角色名称" required label-width="90px">
+                    <el-input v-model="form.roleName" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="角色描述" label-width="90px">
+                    <el-input v-model="form.roleDesc" autocomplete="off"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogFormVisibleAdd = false">取 消</el-button>
+                <el-button type="primary" @click="addRole()">确 定</el-button>
+            </div>
+        </el-dialog>
+
+        <!-- 编辑角色的弹窗 -->
+        <el-dialog title="编辑角色" :visible.sync="dialogTableVisibleEdit">
+            <el-form :data="form">
+                <el-form-item label="角色名" required label-width="90px">
+                    <el-input v-model="form.roleName" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="角色描述" label-width="90px">
+                    <el-input v-model="form.roleDesc" autocomplete="off"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogTableVisibleEdit = false">取 消</el-button>
+                <el-button type="primary" @click="editRole()">确 定</el-button>
+            </div>
+        </el-dialog>
     </el-card>
 </template>
 
@@ -103,6 +137,10 @@ export default {
     name:'RoleList',
     data(){
         return {
+            form:{
+                roleName:'',
+                roleDesc:''
+            },
             currentRoleId:-1,
             roleList:[],
             rightList:[],
@@ -111,7 +149,9 @@ export default {
                 children: 'children',
                 label: 'authName'
             },
-            dialogFormVisible:false
+            dialogFormVisible:false,
+            dialogFormVisibleAdd:false,
+            dialogTableVisibleEdit:false
         }
     },
     mounted(){
@@ -137,6 +177,67 @@ export default {
             }else{
                 this.$message.error(response.data.meta.msg)
             }
+        },
+        //弹添加角色的弹窗
+        addRoleDialog(){
+            this.newRole={}
+            this.dialogFormVisibleAdd=true
+        },
+        //添加角色
+        async addRole(){
+            const response = await this.$http.post('roles', this.newRole)
+            if(response.data.meta.status === 201){
+                this.getRoleList()
+                this.$message.success(response.data.meta.msg)
+                this.dialogFormVisibleAdd=false
+            }else{
+                this.$message.error(response.data.meta.msg)
+            }
+        },
+        //弹编辑角色的弹窗
+        editRoleDialog(role){
+            this.form = role
+            this.dialogTableVisibleEdit=true
+        },
+        //编辑角色
+        async editRole(){
+            if(this.form.roleName !== ''){
+                const response = await this.$http.put(`roles/${this.form.id}`, this.form)
+                if(response.data.meta.status === 200){
+                    this.getRoleList()
+                    this.$message.success(response.data.meta.msg)
+                    this.dialogTableVisibleEdit=false
+                }else{
+                    this.$message.error(response.data.meta.msg)
+                }
+            }else{
+                this.$message.error('角色名不能为空')
+            }
+        },
+        //删除角色
+        deleteRoleAlert(roleId){
+            this.$confirm('此操作将永久删除该角色, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+            }).then(async () => {
+                //如果点确定，那么发请求删除角色
+                const response = await this.$http.delete(`roles/${roleId}`)
+                if(response.data.meta.status === 200){
+                    this.getRoleList()
+                    //弹消息
+                    this.$message({
+                        type: 'success',
+                        message: response.data.meta.msg
+                    })
+                }
+            }).catch(() => {
+                //如果点取消，那么弹取消删除的消息
+                this.$message({
+                    type: 'info',
+                    message: '已取消删除'
+                });          
+            });
         },
         //弹添加权限的弹窗
         async setRightDialog(role){

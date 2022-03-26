@@ -85,10 +85,10 @@
         <!-- 添加用户的弹窗 -->
         <el-dialog title="添加用户" :visible.sync="dialogTableVisibleAdd">
             <el-form :data="form">
-                <el-form-item label="用户名" label-width="90px">
+                <el-form-item label="用户名" required label-width="90px">
                     <el-input v-model="form.username" autocomplete="off"></el-input>
                 </el-form-item>
-                <el-form-item label="密码" label-width="90px">
+                <el-form-item label="密码" required label-width="90px">
                     <el-input v-model="form.password" autocomplete="off"></el-input>
                 </el-form-item>
                 <el-form-item label="邮箱" label-width="90px">
