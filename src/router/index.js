@@ -8,7 +8,7 @@ import Role from '../components/rights/role.vue'
 
 Vue.use(VueRouter)
 
-export default new VueRouter({
+const router = new VueRouter({
     routes:[
         {
             name:'Login',
@@ -23,20 +23,39 @@ export default new VueRouter({
             children:[
                 {
                     name:'User',
-                    path:'/user',
+                    path:'/users',
                     component:User
                 },
                 {
                     name:'Right',
-                    path:'/right',
+                    path:'/rights',
                     component:Right
                 },
                 {
                     name:'Role',
-                    path:'/role',
+                    path:'/roles',
                     component:Role
                 }
             ]
         }
     ]
+
 })
+
+//设置全局路由守卫：如果不是登录请求，在home页渲染前检查token
+router.beforeEach((to, from, next) => {
+    if(to.path !== '/login'){
+        const token = localStorage.getItem("token")
+        //如果没token那么说明没登录
+        if(!token){
+            //跳到登陆界面
+            router.push({name:"Login"})
+        }else{
+            next()
+        }
+    }else{
+        next()
+    }
+})
+
+export default router

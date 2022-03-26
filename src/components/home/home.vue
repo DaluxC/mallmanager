@@ -13,68 +13,17 @@
                 :unique-opened="true"
                 default-active="2"
                 class="el-menu-vertical-demo">
-                    <el-submenu index="1">
+                    <el-submenu v-for="item1 in menus" :key="item1.order" :index="item1.order.toString()">
                         <template slot="title">
                             <i class="el-icon-location"></i>
-                            <span>用户管理</span>
+                            <span>{{item1.authName}}</span>
                         </template>
-                        <el-menu-item index="user">
+                        <el-menu-item v-for="item2 in item1.children" :key="item2.order" :index="item2.path">
                             <i class="el-icon-menu"></i>
-                            <span slot="title">用户列表</span>
+                            <span slot="title">{{item2.authName}}</span>
                         </el-menu-item>
                     </el-submenu>
-                    <el-submenu index="2">
-                        <template slot="title">
-                            <i class="el-icon-location"></i>
-                            <span>权限管理</span>
-                        </template>
-                        <el-menu-item index="role">
-                            <i class="el-icon-menu"></i>
-                            <span slot="title">角色列表</span>
-                        </el-menu-item>
-                        <el-menu-item index="right">
-                            <i class="el-icon-menu"></i>
-                            <span slot="title">权限列表</span>
-                        </el-menu-item>
-                    </el-submenu>
-                    <el-submenu index="3">
-                        <template slot="title">
-                            <i class="el-icon-location"></i>
-                            <span>商品管理</span>
-                        </template>
-                            <el-menu-item index="3-1">
-                                <i class="el-icon-menu"></i>
-                                <span slot="title">商品列表</span>
-                            </el-menu-item>
-                            <el-menu-item index="3-2">
-                                <i class="el-icon-menu"></i>
-                                <span slot="title">分类参数</span>
-                            </el-menu-item>
-                            <el-menu-item index="3-3">
-                                <i class="el-icon-menu"></i>
-                                <span slot="title">商品分类</span>
-                            </el-menu-item>
-                    </el-submenu>
-                    <el-submenu index="4">
-                        <template slot="title">
-                            <i class="el-icon-location"></i>
-                            <span>订单管理</span>
-                        </template>
-                            <el-menu-item index="4-1">
-                                <i class="el-icon-menu"></i>
-                                <span slot="title">订单列表</span>
-                            </el-menu-item>
-                    </el-submenu>
-                    <el-submenu index="5">
-                        <template slot="title">
-                            <i class="el-icon-location"></i>
-                            <span>数据统计</span>
-                        </template>
-                            <el-menu-item index="5-1">
-                                <i class="el-icon-menu"></i>
-                                <span slot="title">数据报表</span>
-                            </el-menu-item>
-                    </el-submenu>
+                    
                 </el-menu>
             </el-aside>
             <el-main class="main"><router-view></router-view></el-main>
@@ -85,16 +34,13 @@
 <script>
 export default {
     name:'MallHome',
-    //home页渲染前判断是否登录
-    beforeCreate(){
-        //获取token
-        const token = localStorage.getItem("token")
-        //如果没token那么说明没登录
-        if(!token){
-            //跳到登陆界面
-            this.$router.push({name:"Login"})
+    data(){
+        return {
+            menus: []
         }
-        //否则继续下一个钩子
+    },
+    created(){
+        this.getMenus()
     },
     methods:{
         //退出登录
@@ -105,6 +51,14 @@ export default {
             this.$message.success("退出成功")
             //跳到登录页
             this.$router.push({name:"Login"})
+        },
+        //获取导航栏信息
+        async getMenus(){
+            const response = await this.$http.get('menus')
+            console.log(response.data.meta.msg)
+            if(response.data.meta.status === 200){
+                this.menus = response.data.data
+            }
         }
     }
 }
